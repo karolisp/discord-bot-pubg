@@ -6,7 +6,7 @@ import { addStatsRoles } from '../../services/roles';
 const UpdateResolver: CommandResolver = async (client, message) => {
   if (message.channel.id !== process.env.ROLES_CHANNEL_ID) return;
 
-  const feedbackMessage = await message.channel.send('A atualizar...');
+  const feedbackMessage = await message.channel.send('Vykdomas atnaujinimas...');
 
   const updatedUser = await User.updatePubgStats({
     discordId: message.author.id,
@@ -14,7 +14,7 @@ const UpdateResolver: CommandResolver = async (client, message) => {
 
   await feedbackMessage.edit(
     EmbedSuccessMessage(
-      `Conta atualizada [${updatedUser.pubgNickname}](https://pubg.op.gg/user/${updatedUser.pubgNickname}).`,
+      `Accountas [${updatedUser.pubgNickname}](https://pubg.op.gg/user/${updatedUser.pubgNickname}) atnaujintas.`,
     ),
   );
 
@@ -27,7 +27,7 @@ const UpdateResolver: CommandResolver = async (client, message) => {
   ) {
     await addStatsRoles(message.member, updatedUser.stats);
     await feedbackMessage.edit(
-      `<@${message.author.id}>, **Modo**: Squad-FPP, **Rank** (maior): ${updatedUser.stats.bestRank}, **ADR**: ${updatedUser.stats.avgDamage}, **K/D**: ${updatedUser.stats.kd}, **WR**: ${updatedUser.stats.winRatio}%`,
+      `<@${message.author.id}>, **GameMode**: Squad-FPP, **Rank** (max): ${updatedUser.stats.bestRank}, **ADR**: ${updatedUser.stats.avgDamage}, **K/D**: ${updatedUser.stats.kd}, **WR**: ${updatedUser.stats.winRatio}%`,
     );
   }
 };

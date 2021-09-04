@@ -15,7 +15,7 @@ const LfsResolver: CommandResolver = async (client, message, argumentsParsed) =>
 
   if (note.length - 1 > NOTE_LIMIT_CHARS) {
     throw new EmbedError(
-      `<@${message.author.id}> escreve no máximo uma nota com 120 caractéres no comando \`lfs "NOTA"\`.`,
+      `<@${message.author.id}> maximum 120 zenklu žinutėje \`lfs "žinutė"\`.`,
     );
   }
 
@@ -39,7 +39,7 @@ const LfsResolver: CommandResolver = async (client, message, argumentsParsed) =>
 
     // should only create lfs if less than 4 players in channel
     if (authorVoiceChannel && authorVoiceChannel?.members?.size >= 4) {
-      await message.member?.send('Como já estão 4 jogadores na sala o ticket de LFS não foi criado.');
+      await message.member?.send('Voice Roome jau yra 4 žaidėjai, LFS žinutė nebuvo sukurtas.');
       return;
     }
   }

@@ -15,7 +15,7 @@ const RoleResolver: CommandResolver = async (client, message, argumentsParsed) =
       EmbedErrorMessage(
         `<@${
           message.author.id
-        }> role inválida, não te esqueças de escrever o nome da role entre aspas. Roles disponíveis: **${ALLOWED_ROLES.map(
+        }> Rolė nerasta, nepamirškite parašyti rolės kabutėse, galimos rolės: **${ALLOWED_ROLES.map(
           (r) => `\`"${r}"\``,
         ).join(',')}**.`,
       ),
@@ -26,7 +26,7 @@ const RoleResolver: CommandResolver = async (client, message, argumentsParsed) =
   if (!ALLOWED_ROLES.includes(roleName)) {
     await message.channel.send(
       EmbedErrorMessage(
-        `<@${message.author.id}> apenas podes adicionar/remover as seguintes roles: **${ALLOWED_ROLES.join(', ')}**.`,
+        `<@${message.author.id}> jūs galite pridėti/nuimti tik šias roles: **${ALLOWED_ROLES.join(', ')}**.`,
       ),
     );
     return;
@@ -40,13 +40,13 @@ const RoleResolver: CommandResolver = async (client, message, argumentsParsed) =
     const memberRole = message.member?.roles.cache.find((r) => r.name.toLowerCase() === roleName);
     if (memberRole) {
       await message.member?.roles.remove(memberRole);
-      await message.channel.send(EmbedSuccessMessage(`<@${message.author.id}> role **${role.name}** removida.`));
-      if (roleName === 'streamer') {
-        logAdminMessage(
-          client,
-          `Senhores administradores, removam o <@${message.author.id}> do [stream bot](https://mee6.xyz/dashboard/345984356340203520/twitch).`,
-        );
-      }
+      await message.channel.send(EmbedSuccessMessage(`<@${message.author.id}> rolė **${role.name}** panaikinta.`));
+      // if (roleName === 'streamer') {
+      //   logAdminMessage(
+      //     client,
+      //     `Senhores administradores, removam o <@${message.author.id}> do [stream bot](https://mee6.xyz/dashboard/345984356340203520/twitch).`,
+      //   );
+      // }
 
       return;
     }
@@ -54,22 +54,14 @@ const RoleResolver: CommandResolver = async (client, message, argumentsParsed) =
     await message.member?.roles.add(role);
     await message.channel.send(
       EmbedSuccessMessage(
-        `<@${message.author.id}> role **${role.name}** adicionada. ${
-          roleName === 'streamer' ? 'Por favor escreve aqui o link para o teu perfil na twitch.' : ''
-        }`,
+        `<@${message.author.id}> pridėta rolė **${role.name}**`,
       ),
     );
-    if (roleName === 'streamer') {
-      logAdminMessage(
-        client,
-        `Senhores administradores, adicionem o <@${message.author.id}> ao [stream bot](https://mee6.xyz/dashboard/345984356340203520/twitch)`,
-      );
-    }
     return;
   }
 
   await message.channel.send(
-    EmbedErrorMessage(`<@${message.author.id}> role "${roleName}" não existe. Escreveste corretamente?`),
+    EmbedErrorMessage(`<@${message.author.id}> rolė "${roleName}" neegzistuoja, ar tikrai gerai parašėte?`),
   );
 };
 

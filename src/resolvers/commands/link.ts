@@ -17,17 +17,17 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
 
   if (pubgNickname === '') {
     throw new EmbedError(
-      `<@${message.author.id}> para associar a conta é necessário dizer o nome no pubg, exemplo:  ${command}`,
+      `<@${message.author.id}> Kad prijungti pubg accounta būtina pateikti tikslų vardą:  ${command}`,
     );
   }
 
   if (isAdminChannel && discordId === '') {
     throw new EmbedError(
-      `<@${message.author.id}> para associar a conta de pubg **${pubgNickname}** no canal de admin é necessário dizer a quem queremos associar, exemplo:  ${command}`,
+      `<@${message.author.id}> Kad prijungti **${pubgNickname}** administravimo kanale, būtina pateikti prie kurio discord accounto jį prijungti:  ${command}`,
     );
   }
 
-  const feedbackMessage = await message.channel.send('A associar contas...');
+  const feedbackMessage = await message.channel.send('Prijunginėjamas accountas...');
 
   const {
     newUser: { stats },
@@ -41,8 +41,8 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
   await feedbackMessage.edit(
     EmbedSuccessMessage(
       isAdminCommand
-        ? `Ligaste a conta [${pubgNickname}](https://pubg.op.gg/user/${pubgNickname}) à conta de Discord <@${discordId}>`
-        : `Ligaste a conta [${pubgNickname}](https://pubg.op.gg/user/${pubgNickname}) à tua conta de Discord!`,
+        ? `Jūs prijungėte [${pubgNickname}](https://pubg.op.gg/user/${pubgNickname}) accountą prie discord accounto <@${discordId}>`
+        : `Sveikinimai prijungus [${pubgNickname}](https://pubg.op.gg/user/${pubgNickname}) prie savo Discord!`,
     ),
   );
 
@@ -67,9 +67,9 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
     if (isAdminCommand) {
       member = await message.guild?.members.fetch(discordId);
     }
-    if (!member) throw new EmbedError('Utilizador não encontrado no servidor');
+    if (!member) throw new EmbedError('Toks vartotojas nerastas...');
     await addStatsRoles(member, stats);
-    const messageStats = `<@${linkedDiscordId}>, **Modo**: Squad-FPP, **Rank** (maior): ${stats.bestRank}, **ADR**: ${stats.avgDamage}, **K/D**: ${stats.kd}, **WR**: ${stats.winRatio}%.`;
+    const messageStats = `<@${linkedDiscordId}>, **GameMode**: Squad-FPP, **Rank** (max): ${stats.bestRank}, **ADR**: ${stats.avgDamage}, **K/D**: ${stats.kd}, **WR**: ${stats.winRatio}%.`;
     await feedbackMessage.edit(messageStats);
   }
 };

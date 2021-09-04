@@ -20,7 +20,7 @@ type Resolvers = {
 
 export const NOTE_LIMIT_CHARS = 120;
 export const QUOTE_REGEX = /^"(.*?)"$/;
-export const ALLOWED_ROLES = ['free agent', 'streamer'];
+export const ALLOWED_ROLES = [];
 
 export const resolvers: Resolvers = {
   lfs: LfsResolver,

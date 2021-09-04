@@ -38,7 +38,7 @@ export const resolvers: Resolvers = {
         await authorReaction.send(
           `<@${
             user.id
-          }>, só podes enviar um convite ✉️ a cada ${AntiSpamLfsReaction.getIntervalMinutes()} minutos ao mesmo jogador.`,
+          }>, tam pačiam gavėjui jūs galite siųsti ne daugiau vieną ✉️ per ${AntiSpamLfsReaction.getIntervalMinutes()} minutes(-čių) `,
         );
         return;
       }
@@ -105,7 +105,7 @@ export const resolvers: Resolvers = {
       const reactionAuthorChannel = reactionMember?.voice.channel;
 
       if (!reactionAuthorChannel) {
-        await user.send(`<@${user.id}>, tens de estar num canal de voz para convidar ✉️ jogadores.`);
+        await user.send(`<@${user.id}>, jei norite pakviesti kitus žaidėjus - turite būti viename iš balso kanalų.`);
         return;
       }
 
@@ -119,7 +119,7 @@ export const resolvers: Resolvers = {
         await reactionMember.send(
           `<@${
             user.id
-          }>, só podes enviar um convite ✉️ a cada ${AntiSpamLfsReaction.getIntervalMinutes()} minutos ao mesmo jogador.`,
+          }>, tam pačiam gavėjui jūs galite siųsti ne daugiau vieną ✉️ per ${AntiSpamLfsReaction.getIntervalMinutes()} minutes(-čių)`,
         );
         return;
       }

@@ -51,8 +51,8 @@ export const NOT_FOUND_MESSAGE = '¯\\_(ツ)_/¯';
 const computeConclusion = (type: EmbedType, users: LfsUsers, authorId: string, channel?: Channel | null) => {
   if (users && users.length >= 4) return ``;
   return channel
-    ? `Para te juntares reaje com ✉️ ou envia PM <@${authorId}>`
-    : `Para convidar entra num canal e reaje com 👍 ou envia PM <@${authorId}>`;
+    ? `Norintys prisijungti spauskite ✉️ arba pm <@${authorId}>`
+    : `<@${authorId}> ieško squado. Spausk 👍 kad pakviesti`;
 };
 
 const computeAuthorAvatar = (channel: Channel, users: LfsUsers, author?: Author) => {
@@ -82,8 +82,8 @@ export const EmbedLookingForSomeone = ({ author, channel, users, note, footer }:
   const missingPlayers = users ? 4 - users.length : 0;
   const missingPlayersContent = users && users.length ? ` +${4 - users.length} ` : ' ';
 
-  const title = missingPlayers > 0 ? `Procura${missingPlayersContent}jogadores` : `A jogar`;
-  const titleChannel = channel ? `${title} em ${channel.name}` : title;
+  const title = missingPlayers > 0 ? `Ieško ${missingPlayersContent}` : `Šiuo metu lošia`;
+  const titleChannel = channel ? `${title} @ ${channel.name}` : title;
   const embedType = footer ?? EmbedType.lfs;
   const conclusion = computeConclusion(embedType, users, author.id, channel);
   const footerComputed = users?.length === 4 ? '' : footer ?? EmbedType.lfs;

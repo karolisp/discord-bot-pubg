@@ -80,7 +80,7 @@ UserSchema.statics = {
     if (userWithNick) {
       await userWithNick.delete();
     } else {
-      throw new EmbedError(`**${pubgNickname}** não está ligada a nenhuma conta deste discord.`);
+      throw new EmbedError(`**${pubgNickname}** neprijungtas prie jokio Discord accounto.`);
     }
 
     return userWithNick;
@@ -92,7 +92,7 @@ UserSchema.statics = {
       if (force && userWithNick.discordId !== discordId) {
         await userWithNick.delete();
       } else {
-        throw new EmbedError(`<@${userWithNick.discordId}> já está ligado a esta conta de pubg **${pubgNickname}**.`);
+        throw new EmbedError(`<@${userWithNick.discordId}> jau prijungtas prie šio pubg accounto: **${pubgNickname}**.`);
       }
     }
 
@@ -113,7 +113,7 @@ UserSchema.statics = {
     const user: UserDocument = await this.findOne({ discordId });
     if (!user) {
       throw new EmbedError(
-        `<@${discordId}> tens de ligar a tua conta do Discord ao PUBG, usa o comando \`/link NICK_DO_PUBG\`.`,
+        `<@${discordId}>, prijungt pubg accountą prie savo Discord accounto: \`/link PUBG_NAME\`.`,
       );
     }
 

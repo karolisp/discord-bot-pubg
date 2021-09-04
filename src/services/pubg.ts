@@ -139,11 +139,11 @@ const getPlayerId = async (player: string): Promise<string> => {
   } catch (err) {
     if (err && err.response && err.response.status && err.response.status === 404)
       throw new EmbedError(
-        `Não encontramos nenhum jogador com o nickname \`${player}\`.  Tens de escrever o nome do PUBG com as letras exatamente iguais ao PUBG (minúsculas e maiúsculas).`,
+        `Nepavyko rasti pubg veikėjo vardu \`${player}\`. Veikėjo vardas turi tiksliai atitikti pubg vardą (didžiosios, mažosios raidės ir t.t.).`,
       );
 
     if (err && err.response && err.response.status && err.response.status === 429)
-      throw new EmbedError(`✋ Para evitar spam à API do PUBG por favor esperem 1 minuto ⏱ e tentem de novo!`);
+      throw new EmbedError(`✋ Perdaug dažnai kviečiamas PUBG API, palaukite vieną minutę ⏱ ir bandykite dar kartą!`);
     else throw Error(err);
   }
 };
@@ -169,7 +169,7 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     const roundsPlayed = get(pubgStats, 'roundsPlayed', NaN);
 
     if (roundsPlayed < MINIMUM_GAMES || pubgStats === undefined)
-      throw new EmbedError(`É necessário jogar no mínimo ${MINIMUM_GAMES} jogos de ranked para obter as roles.`);
+      throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų.`);
 
     const wins = get(pubgStats, 'wins', NaN);
     const damageDealt = get(pubgStats, 'damageDealt', NaN);
@@ -181,7 +181,7 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     const avgDamage = damageDealt / roundsPlayed;
 
     if (typeof kd !== 'number' || typeof avgDamage !== 'number') {
-      throw new EmbedError(`Não foi possível obter o rank para o jogador \`${player}\``);
+      throw new EmbedError(`Nepavyko nustatyti žaidėjo \`${player}\` rank`);
     }
 
     return {
@@ -193,7 +193,7 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     };
   } catch (err) {
     if (err && err.response && err.response.status === 404)
-      throw new EmbedError(`É necessário jogar no mínimo ${MINIMUM_GAMES} jogos de ranked para obter as roles.`);
+      throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų.`);
 
     if (err.name === 'EmbedError') {
       throw new EmbedError(err.message);

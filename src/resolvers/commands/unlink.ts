@@ -13,22 +13,22 @@ const UnlinkResolver: CommandResolver = async (client, message, argumentsParsed)
 
   if (pubgNickname === '') {
     throw new EmbedError(
-      `<@${message.author.id}> para desassociar a conta é necessário dizer o nome no pubg, exemplo:  ${command}`,
+      `<@${message.author.id}> norint atjungti pubg accountą reikia pasakyti jo vardą:  ${command}`,
     );
   }
 
-  const feedbackMessage = await message.channel.send('A desassociar conta...');
+  const feedbackMessage = await message.channel.send('Vykdomas atjungimas...');
   const { discordId } = await User.deleteByPubgAccount(pubgNickname);
 
   const member = await message.guild?.members.fetch(discordId);
   if (member) {
     await removeRoles(member);
-    await message.channel.send(`Roles de <@${discordId}> removidas.`);
+    await message.channel.send(`Nuo <@${discordId}> nuimtos rolės.`);
   }
 
   await feedbackMessage.edit(
     EmbedSuccessMessage(
-      `Desassociaste a conta [${pubgNickname}](https://pubg.op.gg/user/${pubgNickname}) à conta de Discord <@${discordId}>`,
+      `Jūs atjungėte [${pubgNickname}](https://pubg.op.gg/user/${pubgNickname}) accountą nuo <@${discordId}>`,
     ),
   );
 };

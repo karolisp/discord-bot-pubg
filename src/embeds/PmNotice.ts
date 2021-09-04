@@ -2,29 +2,29 @@ import { MessageEmbed, VoiceChannel } from 'discord.js';
 
 export const EmbedPmNotice = (authorId: string) => {
   return new MessageEmbed().setColor('#0099ff').setDescription(`
-    O seu pedido foi enviado para <@${authorId}>. Aguarde uma resposta.
+    Jūsų žinutė buvo nusiųsta <@${authorId}>. Palaukite atsakymo.
   `);
 };
 
 export const EmbedPmNoticeAccept = (authorId: string, channelName?: string, channelInvite?: string) => {
   return new MessageEmbed().setColor('#00FF6D').setDescription(`
-    <@${authorId}> aceitou o pedido para jogar. ${
+    <@${authorId}> kviečia prisijungti ${
     channelInvite && channelName
-      ? `Junta-te ao canal **${channelName}** ${channelInvite}`
-      : `Entra em contacto com o jogador.`
+      ? `Junkitės prie kanalo **${channelName}** ${channelInvite}`
+      : `Susisiekite su žaidėju.`
   }
   `);
 };
 
 export const EmbedPmNoticeWelcome = (authorId: string, channelName?: string, channelInvite?: string) => {
   return new MessageEmbed().setColor('#00FF6D').setDescription(`
-    <@${authorId}> convidou-te para jogar. Junta-te ao canal **${channelName}**
+    <@${authorId}> kviečia prisijungti prie kanalo **${channelName}**
     ${channelInvite}
   `);
 };
 
 export const EmbedPmNoticeDecline = (authorId: string) => {
   return new MessageEmbed().setColor('#FF1700').setDescription(`
-    Neste momento <@${authorId}> não está interessado em jogar.
+    <@${authorId}> sako 🚫
   `);
 };
