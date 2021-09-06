@@ -5,7 +5,7 @@ import { get } from 'lodash';
 
 dotenv.config();
 
-const MINIMUM_GAMES = 8;
+const MINIMUM_GAMES = 25;
 
 function roundHundredth(number: number) {
   return Math.round(number * 100) / 100;

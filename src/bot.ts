@@ -6,6 +6,8 @@ import { triggersResolver } from './resolvers/triggers';
 import { voiceResolver } from './resolvers/voice';
 import mongo from './services/database';
 import setupRoles from './services/roles';
+import { User } from './models/user';
+
 
 dotenv.config();
 const client = new Client({ partials: ['GUILD_MEMBER', 'USER', 'REACTION'] });
@@ -46,3 +48,14 @@ client.on('messageReactionAdd', async (reaction, user) => {
 client.on('voiceStateUpdate', async (oldState, newState) => {
   await voiceResolver(client, oldState, newState);
 });
+
+// client.on("presenceUpdate", (oldMember, newMember) => {
+//     if(oldMember.presence.status !== newMember.presence.status && (newMember.presence.status == 'offline' || newMember.presence.status == 'dnd' )){
+//       // const userId:String = oldMember.userID
+//       // const user = await User.findOne({ discordId: userId, })
+//       // if (user){
+//         console.log(`Useris ${oldMember.user?.username} isejo offline/atejo online, atnaujinam statistika...`)
+//         User.updatePubgStats( { discordId: oldMember.user.id, } )
+//       // }
+//     }
+// });

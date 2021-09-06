@@ -116,7 +116,11 @@ UserSchema.statics = {
         `<@${discordId}>, prijungt pubg accountą prie savo Discord accounto: \`/link PUBG_NAME\`.`,
       );
     }
-
+    if (user.updatedAt && user.updatedAt > Date.now() - 3600000){
+      throw new EmbedError(
+        `<@${discordId}>, pubg stats galima atnaujinti praejus ne maziau valandos nuo paskutinio atnaujinimo. Dabar ${ Date.now() } atnaujinimas buvo ${ user.updatedAt }.`,
+      );
+    }
     // get player stats from pubg api and update
     const stats = await getPlayerStats(user.pubgNickname);
     user.stats = stats;
