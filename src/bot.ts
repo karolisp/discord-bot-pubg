@@ -58,7 +58,7 @@ client.on('presenceUpdate', async (oldPresence, newPresence ) => {
     ) {
       console.log(`Prilinkintas useris ${newPresence.user?.username} pakeite statusa, atnaujinamos roles...`)
       try{
-        updateRolesForMemberIfNeeded(newPresence.member)
+        await updateRolesForMemberIfNeeded(newPresence.member)
       } catch (err) {
         if (err instanceof Error){
           logAdminMessage(client, err.message)

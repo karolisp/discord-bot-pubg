@@ -124,7 +124,7 @@ export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
     try {
       const updated = await User.updatePubgStats( { discordId: member.id, } )
       if (updated?.stats) addStatsRoles(member, updated?.stats ) 
-    } catch (err: unknown) {
+    } catch (err) {
       if (err instanceof EmbedError) {
         if (err.message.startsWith("Norint gauti roles reikia")) {
           const user: UserDocument|null = await User.findOne({ discordId: member.id });
