@@ -1,6 +1,6 @@
 import argv from 'yargs-parser';
 import { Client, Message } from 'discord.js';
-import { EmbedErrorMessage } from '../../embeds/Error';
+import { EmbedError, EmbedErrorMessage } from '../../embeds/Error';
 import { parseAuthorIdFromLfsEmbed } from '../../utils/embeds';
 import { logError } from '../../services/logs';
 import LfsResolver from './lfs';
@@ -9,8 +9,8 @@ import UnlinkResolver from './unlink';
 import UpdateResolver from './update';
 import HelpResolver from './help';
 import RoleResolver from './role';
-import { RANKS } from '../../services/roles';
-import User from '../../models/user';
+import { RANKS, removeRoles, updateRolesForMemberIfNeeded } from '../../services/roles';
+import User, { UserDocument } from '../../models/user';
 
 // import AntiSpam from './../services/spam';
 
@@ -67,8 +67,8 @@ export const commandsResolver = async (client: Client, message: Message) => {
 
   const [command] = commandArgv._;
 
-  if (process.env.ENABLE_ON_MESSAGE_AUTO_ROLE_UPDATE=="true" && message.member?.roles.cache.some(role => RANKS[role.name] != null)){
-    User.updatePubgStats( { discordId: message.member.id, } )
+  if (process.env.ENABLE_ON_MESSAGE_AUTO_ROLE_UPDATE=="true" && message.member){
+    updateRolesForMemberIfNeeded(message.member)
   }
 
   if (!COMMANDS.includes(command.toLowerCase().trim())) return null;
@@ -85,7 +85,7 @@ export const commandsResolver = async (client: Client, message: Message) => {
     const resolver = resolvers[command];
     await resolver(client, message, commandArgv);
   } catch (err) {
-    if (err.name === 'EmbedError' || isAdminChannel) {
+    if (err instanceof EmbedError || isAdminChannel) {
       await message.channel.send(EmbedErrorMessage(err.message));
     } else console.error(`Error running command resolver: "${command}"`, err.message);
 

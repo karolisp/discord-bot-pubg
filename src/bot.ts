@@ -5,7 +5,7 @@ import { reactionsResolver } from './resolvers/reactions';
 import { triggersResolver } from './resolvers/triggers';
 import { voiceResolver } from './resolvers/voice';
 import mongo from './services/database';
-import setupRoles from './services/roles';
+import setupRoles, { RANKS, updateRolesForMemberIfNeeded } from './services/roles';
 import User from './models/user';
 import { logAdminMessage } from './services/logs';
 
@@ -50,23 +50,22 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   await voiceResolver(client, oldState, newState);
 });
 
-client.on('presenceUpdate', async (oldPresence, newPresence ) => 
-  {
-    if(process.env.ENABLE_ON_PRESENCE_AUTO_ROLE_UPDATE=="true" && oldPresence?.status !== newPresence.status){
-      const userId:String = newPresence.userID
-      const user = await User.findOne({ discordId: newPresence.userID })
-      if (user){
-        console.log(`Useris ${newPresence.user?.username} isejo offline/atejo online, atnaujinam statistika...`)
-        try{
-          User.updatePubgStats( { discordId: newPresence.userID, } )
-        } catch (err: unknown){
-          if (err instanceof Error){
-            logAdminMessage(client, err.message)
-          } else {
-            logAdminMessage(client, String(err))
-          }
+client.on('presenceUpdate', async (oldPresence, newPresence ) => {
+  if (
+      process.env.ENABLE_ON_PRESENCE_AUTO_ROLE_UPDATE=="true" 
+      && oldPresence?.status !== newPresence.status
+      && newPresence.member    
+    ) {
+      console.log(`Prilinkintas useris ${newPresence.user?.username} pakeite statusa, atnaujinamos roles...`)
+      try{
+        updateRolesForMemberIfNeeded(newPresence.member)
+      } catch (err) {
+        if (err instanceof Error){
+          logAdminMessage(client, err.message)
+        } else {
+          logAdminMessage(client, String(err))
         }
       }
-    }
+    }     
   }
 );

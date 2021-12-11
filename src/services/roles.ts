@@ -1,6 +1,8 @@
 import { Guild, RoleData, GuildMember } from 'discord.js';
 import { PubgTier, StatsPartial } from './pubg';
 import { findClosestNumber } from '../utils/helpers';
+import User, { UserDocument } from '../models/user';
+import { EmbedError } from '../embeds/Error';
 
 type Roles = RoleData[];
 
@@ -114,6 +116,36 @@ export const addStatsRoles = async (member: GuildMember, stats: StatsPartial) =>
   await removeRoles(member);
   await addRoles(member, stats);
 };
+
+export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
+  if (member.roles.cache.some(role => RANKS[role.name] != null) 
+      && await User.userNeedsUpdate({ discordId: member.id, })
+      ){
+    try {
+      const updated = await User.updatePubgStats( { discordId: member.id, } )
+      if (updated?.stats) addStatsRoles(member, updated?.stats ) 
+    } catch (err: unknown) {
+      if (err instanceof EmbedError) {
+        if (err.message.startsWith("Norint gauti roles reikia")) {
+          const user: UserDocument|null = await User.findOne({ discordId: member.id });
+          if (!user) {
+            console.log(`Removing roles for ${member.nickname} due to non existing linked account`)
+            removeRoles(member) //no linked user - nuke roles
+          }
+          if (user?.updatedAt && new Date(user.updatedAt).getTime() < new Date().getTime() - (3600*1000*24*14)){ //two weeks grace period
+            console.log(`Removing roles for ${member.nickname} after two weeks since last update expired...`)
+            removeRoles(member)
+          }
+        } else if (err.message.startsWith("Nepavyko rasti pubg")) { // pasikeite vardas, tegu prisilinkina is naujo
+          console.log(`Removing roles for ${member.nickname} due to unknown linked char, did name change happen? `)
+          removeRoles(member)
+        }
+      } else {
+        console.log(err)
+      }
+    }  
+  } 
+} 
 
 export default async (guild: Guild) => {
   // delete
