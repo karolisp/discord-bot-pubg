@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "pubg-pt discord bot for lfs and stats roles",
   "main": "dist/bot.js",
-  "author": "antoniojps",
+  "author": "antoniojps,karolisp",
   "license": "MIT",
   "scripts": {
     "commit": "git-cz",
@@ -35,7 +35,8 @@
     "query-string": "^6.13.7",
     "tsc": "^2.0.3",
     "yargs-parser": "^20.2.4",
-    "yarn": "^1.22.11"
+    "yarn": "^1.22.11",
+    "@brokerloop/ttlcache": "^3.2.3"
   },
   "devDependencies": {
     "@types/mongoose": "^5.10.3",

@@ -24,11 +24,11 @@ Don't be a crybaby: clone, install and run the commands
 
 ## Bot
 
-This bot aims to be used in the PUBG PT discord community. The plan is to make a LFS system and automatic roles according to PUBG ranked games stats.
+This bot aims to be used in the PUBG LT discord community. It supports automatic role update on presence change
 
 ### Server installation
 
-Add the bot the server, to do so visit the link: `https://discord.com/oauth2/authorize?client_id=BOT_CLIENT_ID&scope=bot`
+Add the bot the server, to do so visit the link: `https://discord.com/oauth2/authorize?client_id=883630850317631498&scope=bot`
 
 ### Available commands
 

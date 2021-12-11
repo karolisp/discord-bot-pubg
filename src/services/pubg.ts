@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import dotenv from 'dotenv';
 import { EmbedError } from './../embeds/Error';
 import { get } from 'lodash';
+import { TTLCache } from '@brokerloop/ttlcache';
 
 dotenv.config();
 
@@ -15,6 +16,12 @@ function toPercentage(number: number) {
   const percentage = number * 100;
   return Math.round(percentage);
 }
+
+const retrievedStatsCache = new TTLCache<string, Stats>({
+  ttl:   3600000,
+  max:   Infinity,
+  clock: Date
+});
 
 // config
 const pubg = axios.create({
@@ -159,7 +166,8 @@ const getPlayerId = async (player: string): Promise<string> => {
  */
 export const getPlayerStats = async (player: string): Promise<Stats> => {
   if (typeof player !== 'string' || !player) throw Error('Missing player name');
-
+  const cached = retrievedStatsCache.get(player);
+  if (cached) return cached
   try {
     const { id: seasonId } = await getCurrentSeason();
     const playerId = await getPlayerId(player);
@@ -189,6 +197,16 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     if (typeof kd !== 'number' || typeof avgDamage !== 'number') {
       throw new EmbedError(`Nepavyko nustatyti žaidėjo \`${player}\` rank`);
     }
+    const compiledStats = {
+      kd: roundHundredth(kd),
+      avgDamage: roundHundredth(avgDamage),
+      bestRank,
+      winRatio: toPercentage(winRatio),
+      roundsPlayed,
+      currentRank,
+      currentSubRank,
+    };
+    retrievedStatsCache.set(player, compiledStats);
 
     return {
       kd: roundHundredth(kd),
