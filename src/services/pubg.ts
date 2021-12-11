@@ -23,6 +23,12 @@ const retrievedStatsCache = new TTLCache<string, Stats>({
   clock: Date
 });
 
+const retrievalErrors = new TTLCache<string, EmbedError>({
+  ttl:   3600000,
+  max:   Infinity,
+  clock: Date
+});
+
 // config
 const pubg = axios.create({
   baseURL: 'https://api.playbattlegrounds.com/shards/steam',
@@ -168,6 +174,7 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
   if (typeof player !== 'string' || !player) throw Error('Missing player name');
   const cached = retrievedStatsCache.get(player);
   if (cached) return cached
+  else if (retrievalErrors.get(player)) throw retrievalErrors.get(player)
   try {
     const { id: seasonId } = await getCurrentSeason();
     const playerId = await getPlayerId(player);
@@ -180,8 +187,10 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     const pubgStats = data.attributes.rankedGameModeStats?.['squad-fpp'];
     const roundsPlayed = get(pubgStats, 'roundsPlayed', NaN);
 
+    
     if (roundsPlayed < MINIMUM_GAMES || pubgStats === undefined)
       throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų. ${player} turi ${roundsPlayed} ranked squad-fpp žaidimų dabartiniame sezone`);
+
 
     const wins = get(pubgStats, 'wins', NaN);
     const damageDealt = get(pubgStats, 'damageDealt', NaN);
@@ -208,21 +217,15 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     };
     retrievedStatsCache.set(player, compiledStats);
 
-    return {
-      kd: roundHundredth(kd),
-      avgDamage: roundHundredth(avgDamage),
-      bestRank,
-      winRatio: toPercentage(winRatio),
-      roundsPlayed,
-      currentRank,
-      currentSubRank,
-    };
+    return compiledStats;
   } catch (err) {
-    if (err && err.response && err.response.status === 404)
-      throw new EmbedError(`Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`);
-
+    if (err && err.response && err.response.status === 404) {
+      retrievalErrors.set(player, new EmbedError(`Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`));
+      throw retrievalErrors.get(player);
+    }
     if (err.name === 'EmbedError') {
-      throw new EmbedError(err.message);
+      retrievalErrors.set(player, new EmbedError(err.message));
+      throw retrievalErrors.get(player);
     } else throw new Error(err);
   }
 };
