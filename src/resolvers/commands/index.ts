@@ -9,6 +9,8 @@ import UnlinkResolver from './unlink';
 import UpdateResolver from './update';
 import HelpResolver from './help';
 import RoleResolver from './role';
+import { RANKS } from '../../services/roles';
+import User from '../../models/user';
 
 // import AntiSpam from './../services/spam';
 
@@ -64,6 +66,10 @@ export const commandsResolver = async (client: Client, message: Message) => {
   const commandArgv = argv(message.content);
 
   const [command] = commandArgv._;
+
+  if (process.env.ENABLE_ON_MESSAGE_AUTO_ROLE_UPDATE=="true" && message.member?.roles.cache.some(role => RANKS[role.name] != null)){
+    User.updatePubgStats( { discordId: message.member.id, } )
+  }
 
   if (!COMMANDS.includes(command.toLowerCase().trim())) return null;
 

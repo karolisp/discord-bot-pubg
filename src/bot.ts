@@ -1,4 +1,4 @@
-import { Client } from 'discord.js';
+import { Client, Presence } from 'discord.js';
 import dotenv from 'dotenv';
 import { commandsResolver } from './resolvers/commands/index';
 import { reactionsResolver } from './resolvers/reactions';
@@ -6,7 +6,8 @@ import { triggersResolver } from './resolvers/triggers';
 import { voiceResolver } from './resolvers/voice';
 import mongo from './services/database';
 import setupRoles from './services/roles';
-import { User } from './models/user';
+import User from './models/user';
+import { logAdminMessage } from './services/logs';
 
 
 dotenv.config();
@@ -49,13 +50,23 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   await voiceResolver(client, oldState, newState);
 });
 
-// client.on("presenceUpdate", (oldMember, newMember) => {
-//     if(oldMember.presence.status !== newMember.presence.status && (newMember.presence.status == 'offline' || newMember.presence.status == 'dnd' )){
-//       // const userId:String = oldMember.userID
-//       // const user = await User.findOne({ discordId: userId, })
-//       // if (user){
-//         console.log(`Useris ${oldMember.user?.username} isejo offline/atejo online, atnaujinam statistika...`)
-//         User.updatePubgStats( { discordId: oldMember.user.id, } )
-//       // }
-//     }
-// });
+client.on('presenceUpdate', async (oldPresence, newPresence ) => 
+  {
+    if(process.env.ENABLE_ON_PRESENCE_AUTO_ROLE_UPDATE=="true" && oldPresence?.status !== newPresence.status){
+      const userId:String = newPresence.userID
+      const user = await User.findOne({ discordId: newPresence.userID })
+      if (user){
+        console.log(`Useris ${newPresence.user?.username} isejo offline/atejo online, atnaujinam statistika...`)
+        try{
+          User.updatePubgStats( { discordId: newPresence.userID, } )
+        } catch (err: unknown){
+          if (err instanceof Error){
+            logAdminMessage(client, err.message)
+          } else {
+            logAdminMessage(client, String(err))
+          }
+        }
+      }
+    }
+  }
+);

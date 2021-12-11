@@ -101,6 +101,8 @@ export type Stats = {
   bestRank: PubgTier;
   winRatio: number;
   roundsPlayed: number;
+  currentRank: PubgTier;
+  currentSubRank: String;
 };
 
 export type StatsPartial = {
@@ -108,6 +110,8 @@ export type StatsPartial = {
   avgDamage?: number;
   bestRank?: PubgTier;
   winRatio?: number;
+  currentRank?: PubgTier;
+  currentSubRank?: String;
 };
 
 const getCurrentSeason = async (): Promise<PubgSeason> => {
@@ -133,7 +137,7 @@ const getPlayerId = async (player: string): Promise<string> => {
     const accountId = data[0].id || null;
     if (!accountId)
       throw new EmbedError(
-        `Não encontramos nenhum jogador com o nickname \`${player}\`. Tens de escrever o nome do PUBG com as letras exatamente iguais ao PUBG (minúsculas e maiúsculas).`,
+        `Nepavyko rasti pubg veikėjo vardu \`${player}\`. Veikėjo vardas turi tiksliai atitikti pubg vardą (didžiosios, mažosios raidės ir t.t.).`,
       );
     return accountId;
   } catch (err) {
@@ -169,12 +173,14 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     const roundsPlayed = get(pubgStats, 'roundsPlayed', NaN);
 
     if (roundsPlayed < MINIMUM_GAMES || pubgStats === undefined)
-      throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų.`);
+      throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų. ${player} turi ${roundsPlayed} ranked squad-fpp žaidimų dabartiniame sezone`);
 
     const wins = get(pubgStats, 'wins', NaN);
     const damageDealt = get(pubgStats, 'damageDealt', NaN);
     const kills = get(pubgStats, 'kills', NaN);
     const bestRank = get(pubgStats, 'bestTier.tier', undefined);
+    const currentRank = get(pubgStats, 'currentTier.tier', undefined);
+    const currentSubRank = get(pubgStats, 'currentTier.subTier', '');
     const winRatio = get(pubgStats, 'winRatio', NaN);
 
     const kd = kills / (roundsPlayed - wins);
@@ -190,10 +196,12 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
       bestRank,
       winRatio: toPercentage(winRatio),
       roundsPlayed,
+      currentRank,
+      currentSubRank,
     };
   } catch (err) {
     if (err && err.response && err.response.status === 404)
-      throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų.`);
+      throw new EmbedError(`Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`);
 
     if (err.name === 'EmbedError') {
       throw new EmbedError(err.message);

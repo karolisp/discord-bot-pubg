@@ -96,7 +96,7 @@ const addRoles = async (member: GuildMember, stats: StatsPartial) => {
 
   const kdRoleName = stats.kd ? computeRoleNameFromStats(KD, stats.kd, 'KD', 5) : null;
   const adrRoleName = stats.avgDamage ? computeRoleNameFromStats(ADR, stats.avgDamage, 'ADR', 500) : null;
-  const rankRoleName = stats.bestRank ? RANKS[stats.bestRank] : null;
+  const rankRoleName = stats.currentRank ? RANKS[stats.currentRank] : null;
   const rolesNameToBeAssigned = [kdRoleName, adrRoleName, rankRoleName].filter((role) => role !== null);
   const roles = await member.guild.roles.fetch();
 
