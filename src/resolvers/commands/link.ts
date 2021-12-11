@@ -47,7 +47,7 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
   );
 
   if (
-    typeof stats?.bestRank === 'string' &&
+    typeof stats?.currentRank === 'string' &&
     typeof stats?.avgDamage === 'number' &&
     typeof stats?.kd === 'number' &&
     typeof stats?.winRatio === 'number' &&
