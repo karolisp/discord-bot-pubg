@@ -24,3 +24,11 @@ export const logAdminMessage = async (client: Client, message: string) => {
     adminChannel.send(EmbedDefaultMessage(message));
   }
 };
+
+export const logServerLogMessage = async (client: Client, message: string) => {
+  const logChannel = process.env.LOG_CHANNEL_ID ? await client.channels.fetch(process.env.LOG_CHANNEL_ID) : null;
+
+  if (logChannel?.isText()) {
+    logChannel.send(EmbedDefaultMessage(message));
+  }
+};

@@ -1,4 +1,4 @@
-import { Client, Presence } from 'discord.js';
+import { Client, GuildMember, Presence } from 'discord.js';
 import dotenv from 'dotenv';
 import { commandsResolver } from './resolvers/commands/index';
 import { reactionsResolver } from './resolvers/reactions';
@@ -7,7 +7,7 @@ import { voiceResolver } from './resolvers/voice';
 import mongo from './services/database';
 import setupRoles, { RANKS, updateRolesForMemberIfNeeded } from './services/roles';
 import User from './models/user';
-import { logAdminMessage } from './services/logs';
+import { logAdminMessage, logServerLogMessage } from './services/logs';
 
 
 dotenv.config();
@@ -68,3 +68,7 @@ client.on('presenceUpdate', async (oldPresence, newPresence ) => {
     }     
   }
 );
+
+client.on('guildMemberRemove',async (member) => {
+  logServerLogMessage(client, `Member ${member.displayName} has left the guild...`)    
+})
