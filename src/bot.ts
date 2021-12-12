@@ -56,7 +56,6 @@ client.on('presenceUpdate', async (oldPresence, newPresence ) => {
       && oldPresence?.status !== newPresence.status
       && newPresence.member    
     ) {
-      console.log(`Prilinkintas useris ${newPresence.user?.username} pakeite statusa, atnaujinamos roles...`)
       try{
         await updateRolesForMemberIfNeeded(newPresence.member)
       } catch (err) {
