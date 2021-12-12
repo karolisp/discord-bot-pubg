@@ -47,7 +47,9 @@ export const parseUserStatsFromString = (line: string): StatsPartial | undefined
   const userInfo = line.split(',');
   if (userInfo.length > 0) {
     const firstSplit = userInfo[0].split(' ');
-    const rank = firstSplit[firstSplit.length - 1];
+    const rank = firstSplit[firstSplit.length - 2];
+    const subRank = parseInt(firstSplit[firstSplit.length - 1]);
+
     if (rank === NOT_FOUND_MESSAGE) return undefined;
 
     const statsRaw = userInfo.filter((info) => STATS.find((stat) => info.includes(stat)));
@@ -76,7 +78,9 @@ export const parseUserStatsFromString = (line: string): StatsPartial | undefined
     return {
       ...stats,
       winRatio: typeof stats?.winRatio === 'number' ? stats?.winRatio : NaN,
-      bestRank: Object.values(Tier).includes(rank) ? rank : undefined,
+      bestRank: undefined,
+      currentRank : Object.values(Tier).includes(rank) ? rank : undefined,
+      currentSubRank : typeof subRank === 'number' ? String(subRank) : undefined,
     };
   }
 };
