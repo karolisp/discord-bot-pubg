@@ -122,7 +122,7 @@ export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
       && await User.userNeedsUpdate({ discordId: member.id, })
       ){
     try {
-      console.log(`Prilinkintas useris ${member.nickname} pakeite statusa, atnaujinamos roles...`)
+      console.log(`Prilinkintas useris ${member.user.username} pakeite statusa, atnaujinamos roles...`)
       const updated = await User.updatePubgStats( { discordId: member.id, } )
       if (updated?.stats) addStatsRoles(member, updated?.stats ) 
     } catch (err) {
