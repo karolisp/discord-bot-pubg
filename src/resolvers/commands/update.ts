@@ -19,7 +19,7 @@ const UpdateResolver: CommandResolver = async (client, message) => {
   );
 
   if (
-    typeof updatedUser?.stats?.bestRank === 'string' &&
+    typeof updatedUser?.stats?.currentRank === 'string' &&
     typeof updatedUser?.stats?.avgDamage === 'number' &&
     typeof updatedUser?.stats?.kd === 'number' &&
     typeof updatedUser?.stats?.winRatio === 'number' &&
@@ -27,7 +27,7 @@ const UpdateResolver: CommandResolver = async (client, message) => {
   ) {
     await addStatsRoles(message.member, updatedUser.stats);
     await feedbackMessage.edit(
-      `<@${message.author.id}>, **GameMode**: Squad-FPP, **Rank** (max): ${updatedUser.stats.bestRank}, **ADR**: ${updatedUser.stats.avgDamage}, **K/D**: ${updatedUser.stats.kd}, **WR**: ${updatedUser.stats.winRatio}%`,
+      `<@${message.author.id}>, **GameMode**: Squad-FPP, **Rank** : ${updatedUser.stats.currentRank} ${updatedUser.stats.currentSubRank}, **ADR**: ${updatedUser.stats.avgDamage}, **K/D**: ${updatedUser.stats.kd}, **WR**: ${updatedUser.stats.winRatio}%`,
     );
   }
 };

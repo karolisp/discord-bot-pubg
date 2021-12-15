@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import dotenv from 'dotenv';
 import { EmbedError } from './../embeds/Error';
 import { get } from 'lodash';
+import { TTLCache } from '@brokerloop/ttlcache';
 
 dotenv.config();
 
@@ -15,6 +16,18 @@ function toPercentage(number: number) {
   const percentage = number * 100;
   return Math.round(percentage);
 }
+
+const retrievedStatsCache = new TTLCache<string, Stats>({
+  ttl:   3600000,
+  max:   Infinity,
+  clock: Date
+});
+
+const retrievalErrors = new TTLCache<string, EmbedError>({
+  ttl:   3600000,
+  max:   Infinity,
+  clock: Date
+});
 
 // config
 const pubg = axios.create({
@@ -101,6 +114,8 @@ export type Stats = {
   bestRank: PubgTier;
   winRatio: number;
   roundsPlayed: number;
+  currentRank: PubgTier;
+  currentSubRank: String;
 };
 
 export type StatsPartial = {
@@ -108,6 +123,8 @@ export type StatsPartial = {
   avgDamage?: number;
   bestRank?: PubgTier;
   winRatio?: number;
+  currentRank?: PubgTier;
+  currentSubRank?: String;
 };
 
 const getCurrentSeason = async (): Promise<PubgSeason> => {
@@ -133,7 +150,7 @@ const getPlayerId = async (player: string): Promise<string> => {
     const accountId = data[0].id || null;
     if (!accountId)
       throw new EmbedError(
-        `Não encontramos nenhum jogador com o nickname \`${player}\`. Tens de escrever o nome do PUBG com as letras exatamente iguais ao PUBG (minúsculas e maiúsculas).`,
+        `Nepavyko rasti pubg veikėjo vardu \`${player}\`. Veikėjo vardas turi tiksliai atitikti pubg vardą (didžiosios, mažosios raidės ir t.t.).`,
       );
     return accountId;
   } catch (err) {
@@ -155,7 +172,9 @@ const getPlayerId = async (player: string): Promise<string> => {
  */
 export const getPlayerStats = async (player: string): Promise<Stats> => {
   if (typeof player !== 'string' || !player) throw Error('Missing player name');
-
+  const cached = retrievedStatsCache.get(player);
+  if (cached) return cached
+  else if (retrievalErrors.get(player)) throw retrievalErrors.get(player)
   try {
     const { id: seasonId } = await getCurrentSeason();
     const playerId = await getPlayerId(player);
@@ -168,13 +187,17 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     const pubgStats = data.attributes.rankedGameModeStats?.['squad-fpp'];
     const roundsPlayed = get(pubgStats, 'roundsPlayed', NaN);
 
+    
     if (roundsPlayed < MINIMUM_GAMES || pubgStats === undefined)
-      throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų.`);
+      throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų. ${player} turi ${roundsPlayed} ranked squad-fpp žaidimų dabartiniame sezone`);
+
 
     const wins = get(pubgStats, 'wins', NaN);
     const damageDealt = get(pubgStats, 'damageDealt', NaN);
     const kills = get(pubgStats, 'kills', NaN);
     const bestRank = get(pubgStats, 'bestTier.tier', undefined);
+    const currentRank = get(pubgStats, 'currentTier.tier', undefined);
+    const currentSubRank = get(pubgStats, 'currentTier.subTier', '');
     const winRatio = get(pubgStats, 'winRatio', NaN);
 
     const kd = kills / (roundsPlayed - wins);
@@ -183,20 +206,26 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     if (typeof kd !== 'number' || typeof avgDamage !== 'number') {
       throw new EmbedError(`Nepavyko nustatyti žaidėjo \`${player}\` rank`);
     }
-
-    return {
+    const compiledStats = {
       kd: roundHundredth(kd),
       avgDamage: roundHundredth(avgDamage),
       bestRank,
       winRatio: toPercentage(winRatio),
       roundsPlayed,
+      currentRank,
+      currentSubRank,
     };
-  } catch (err) {
-    if (err && err.response && err.response.status === 404)
-      throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų.`);
+    retrievedStatsCache.set(player, compiledStats);
 
+    return compiledStats;
+  } catch (err) {
+    if (err && err.response && err.response.status === 404) {
+      retrievalErrors.set(player, new EmbedError(`Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`));
+      throw retrievalErrors.get(player);
+    }
     if (err.name === 'EmbedError') {
-      throw new EmbedError(err.message);
+      retrievalErrors.set(player, new EmbedError(err.message));
+      throw retrievalErrors.get(player);
     } else throw new Error(err);
   }
 };

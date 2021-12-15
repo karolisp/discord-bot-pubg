@@ -13,7 +13,7 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
   const pubgNickname = argumentsParsed._[1] || '';
   const discordId = argumentsParsed._[2] || '';
   const isAdminCommand = isAdminChannel && discordId;
-  const command = isAdminChannel ? `\`/link NICK_DO_PUBG DISCORD_ID\`` : `\`/link NICK_DO_PUBG\``;
+  const command = isAdminChannel ? `\`/link PUBG_NICK DISCORD_ID\`` : `\`/link PUBG_NICK\``;
 
   if (pubgNickname === '') {
     throw new EmbedError(
@@ -47,7 +47,7 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
   );
 
   if (
-    typeof stats?.bestRank === 'string' &&
+    typeof stats?.currentRank === 'string' &&
     typeof stats?.avgDamage === 'number' &&
     typeof stats?.kd === 'number' &&
     typeof stats?.winRatio === 'number' &&
@@ -58,7 +58,7 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
       const oldMember = await message.guild?.members.fetch(oldUser.discordId);
       if (oldMember) {
         await removeRoles(oldMember);
-        await message.channel.send(`Roles de <@${oldUser.discordId}> removidas.`);
+        await message.channel.send(`Vartotojo <@${oldUser.discordId}> roles panaikintos.`);
       }
     }
 
@@ -69,7 +69,7 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
     }
     if (!member) throw new EmbedError('Toks vartotojas nerastas...');
     await addStatsRoles(member, stats);
-    const messageStats = `<@${linkedDiscordId}>, **GameMode**: Squad-FPP, **Rank** (max): ${stats.bestRank}, **ADR**: ${stats.avgDamage}, **K/D**: ${stats.kd}, **WR**: ${stats.winRatio}%.`;
+    const messageStats = `<@${linkedDiscordId}>, **GameMode**: Squad-FPP, **Rank**: ${stats.currentRank} ${stats.currentSubRank}, **ADR**: ${stats.avgDamage}, **K/D**: ${stats.kd}, **WR**: ${stats.winRatio}%.`;
     await feedbackMessage.edit(messageStats);
   }
 };

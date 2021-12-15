@@ -76,7 +76,7 @@ const computeAuthorAvatar = (channel: Channel, users: LfsUsers, author?: Author)
 export const EmbedLookingForSomeone = ({ author, channel, users, note, footer }: LfsEmbedProps) => {
   const usersList = users?.map((user) => {
     if (user.pubgNickname === '' || user.stats === undefined) return `\n<@${user.discordId}>${NOT_FOUND_MESSAGE}`;
-    return `\n**[${user?.pubgNickname}](https://pubg.op.gg/user/${user?.pubgNickname}?discordId=${user.discordId}&nick=${user?.pubgNickname})** - ${user?.stats?.bestRank}, KD ${user?.stats?.kd}, ADR ${user?.stats?.avgDamage}, WR ${user?.stats?.winRatio}%`;
+    return `\n**[${user?.pubgNickname}](https://pubg.op.gg/user/${user?.pubgNickname}?discordId=${user.discordId}&nick=${user?.pubgNickname})** - ${user?.stats?.currentRank} ${user?.stats?.currentSubRank}, KD ${user?.stats?.kd}, ADR ${user?.stats?.avgDamage}, WR ${user?.stats?.winRatio}%`;
   });
 
   const missingPlayers = users ? 4 - users.length : 0;

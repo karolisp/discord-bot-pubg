@@ -35,6 +35,14 @@ const UserSchema = new mongoose.Schema({
         type: Number,
         sparce: true,
       },
+      currentRank:{
+        type: String,
+        sparse: true,
+      },
+      currentSubRank:{
+        type: String,
+        sparse: true,
+      }
     },
     sparce: true,
   },
@@ -63,6 +71,7 @@ interface UserModel extends Model<UserDocument> {
     newUser: UserDocument;
     oldUser?: UserDocument;
   }>;
+  userNeedsUpdate: (props: { discordId: string }) => Promise<Boolean>;
   updatePubgStats: (props: { discordId: string }) => Promise<UserDocument>;
   deleteByPubgAccount: (pubgNickname: string) => Promise<UserDocument>;
 }
@@ -108,6 +117,11 @@ UserSchema.statics = {
     );
     return { newUser: newPlayer, oldUser: userWithNick };
   },
+  async userNeedsUpdate({ discordId }: LinkProps) {
+    const user: UserDocument = await this.findOne({ discordId });
+    if (!user) return false;
+    return (user.updatedAt && new Date(user.updatedAt).getTime() < new Date().getTime() - Number(process.env.MIN_ROLE_UPDATE_INTERVAL) )  
+  },
   async updatePubgStats({ discordId }: LinkProps) {
     // find in DB
     const user: UserDocument = await this.findOne({ discordId });
@@ -116,9 +130,9 @@ UserSchema.statics = {
         `<@${discordId}>, prijungt pubg accountą prie savo Discord accounto: \`/link PUBG_NAME\`.`,
       );
     }
-    if (user.updatedAt && user.updatedAt > Date.now() - 3600000){
+    if (user.updatedAt && new Date(user.updatedAt).getTime() > new Date().getTime() - Number(process.env.MIN_ROLE_UPDATE_INTERVAL) ){
       throw new EmbedError(
-        `<@${discordId}>, pubg stats galima atnaujinti praejus ne maziau valandos nuo paskutinio atnaujinimo. Dabar ${ Date.now() } atnaujinimas buvo ${ user.updatedAt }.`,
+        `<@${discordId}>, pubg stats galima atnaujinti praejus ne maziau valandos nuo paskutinio atnaujinimo. Dabar ${ new Date().toLocaleString() } atnaujinimas buvo ${ user.updatedAt }.`,
       );
     }
     // get player stats from pubg api and update
