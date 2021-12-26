@@ -223,9 +223,15 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
       retrievalErrors.set(player, new EmbedError(`Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`));
       throw retrievalErrors.get(player);
     }
+
+    if (err && err.response && err.response.status && err.response.status === 429)
+      throw new EmbedError(`✋ Perdaug dažnai kviečiamas PUBG API, palaukite vieną minutę ⏱ ir bandykite dar kartą!`);
+
     if (err.name === 'EmbedError') {
       retrievalErrors.set(player, new EmbedError(err.message));
       throw retrievalErrors.get(player);
-    } else throw new Error(err);
+    }  
+    console.log(err)
+    throw new EmbedError(err);
   }
 };

@@ -14,7 +14,7 @@ const UpdateResolver: CommandResolver = async (client, message) => {
   }).then(updated=>{
     if (new Date(updated.updatedAt).getTime() < new Date().getTime() - 3600000)
       feedbackMessage.edit(
-        EmbedErrorMessage(`Accounto [${updated.pubgNickname}](https://pubg.op.gg/user/${updated.pubgNickname}) atnaujinimas nepavyko.`,)
+        EmbedErrorMessage(`Accounto [${updated.pubgNickname}](https://pubg.op.gg/user/${updated.pubgNickname}) atnaujinimas neivykdytas`,)
       )
     else {
           feedbackMessage.edit(

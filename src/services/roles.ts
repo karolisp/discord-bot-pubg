@@ -125,6 +125,10 @@ export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
       console.log(`Prilinkintas useris ${member.displayName} pakeite statusa, atnaujinamos roles...`)
       const updated = await User.updatePubgStats( { discordId: member.id, } )
       if (updated?.stats) addStatsRoles(member, updated?.stats ) 
+      if (updated?.updatedAt && new Date(updated.updatedAt).getTime() < (new Date().getTime() - (3600*1000*24*14))){ //two weeks grace period
+        console.log(`Removing roles for ${member.nickname} after two weeks since last update expired.`)
+        removeRoles(member)
+      }
     } catch (err) {
       if (err instanceof EmbedError) {
         if (err.message.startsWith("Norint gauti roles reikia")) {
@@ -133,14 +137,14 @@ export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
             console.log(`Removing roles for ${member.nickname} due to non existing linked account`)
             removeRoles(member) //no linked user - nuke roles
           }
-          if (user?.updatedAt && new Date(user.updatedAt).getTime() < new Date().getTime() - (3600*1000*24*14)){ //two weeks grace period
+          if (user?.updatedAt && new Date(user.updatedAt).getTime() < (new Date().getTime() - (3600*1000*24*14))){ //two weeks grace period
             console.log(`Removing roles for ${member.nickname} after two weeks since last update expired...`)
             removeRoles(member)
           }
         } else if (err.message.startsWith("Nepavyko rasti pubg")) { // pasikeite vardas, tegu prisilinkina is naujo
           console.log(`Removing roles for ${member.nickname} due to unknown linked char, did name change happen? `)
           removeRoles(member)
-        }
+        } 
       } else {
         console.log(err)
       }
