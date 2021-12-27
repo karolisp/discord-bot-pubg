@@ -147,16 +147,25 @@ export const addStatsRoles = async (member: GuildMember, stats: StatsPartial) =>
 };
 
 export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
-  if (member.roles.cache.some(role => RANKS[role.name] != null) 
+  if (member.roles.cache.some(role => RANKS[role.name] != null || ADR[role.name] != null) 
       && await User.userNeedsUpdate({ discordId: member.id, })
       ){
     try {
       console.log(`${new Date()}: Prilinkintas useris ${member.displayName} pakeite statusa, atnaujinamos roles...`)
       const updated = await User.updatePubgStats( { discordId: member.id, } )
-      if (updated?.stats && !(updated as any).updateFailMessage) addStatsRoles(member, updated?.stats ) 
-      if (updated?.updatedAt && new Date(updated.updatedAt).getTime() < (new Date().getTime() - (3600*1000*24*14))){ //two weeks grace period
-        console.log(`Removing roles for ${member.displayName} after two weeks since last update expired.`)
+      if (updated?.stats && !(updated as any).updateFailMessage) addStatsRoles(member, updated?.stats )
+      else if ((updated as any).updateFailMessage &&(
+        (updated as any).updateFailMessage.startsWith("Nepavyko rasti pubg")  
+      )) { // update failed with error message
+        console.log(`Removing roles for ${member.displayName} because last update failed: ${(updated as any).updateFailMessage} .`)
         removeRoles(member)
+      }
+      else if (updated?.updatedAt && new Date(updated.updatedAt).getTime() < (new Date().getTime() - (3600*1000*24*14))){ //two weeks grace period
+        console.log(`Removing roles for ${member.displayName} after two weeks since last update expired, last update on ${updated.updatedAt} .`)
+        removeRoles(member)
+      } 
+      else {
+        console.log(`Update failed for ${member.displayName}, msg: ${(updated as any).updateFailMessage}, updatedAt: ${updated.updatedAt}`)
       }
     } catch (err) {
       if (err instanceof EmbedError) {

@@ -12,7 +12,7 @@ const UpdateResolver: CommandResolver = async (client, message) => {
   const updatedUser = await User.updatePubgStats({
     discordId: message.author.id,
   }).then(updated=>{
-    if ((new Date(updated.updatedAt).getTime() < new Date().getTime() - 3600000) || (updated as any).updateFailMessage)
+    if ((updated as any).updateFailMessage)
       feedbackMessage.edit(
         EmbedErrorMessage(`Accounto [${updated.pubgNickname}](https://pubg.op.gg/user/${updated.pubgNickname}) atnaujinimas neivykdytas: ${(updated as any).updateFailMessage}`,)
       )
