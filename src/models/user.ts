@@ -140,7 +140,8 @@ UserSchema.statics = {
       user.stats = retrieved;
       return user.save();
     }).catch(err=>{
-      console.log("Nepavyko gauti statsu");
+      console.log(`Nepavyko gauti statsu: ${err}`);
+      (user as any).updateFailMessage = err.message
       return user;
     });
     return maybeUpdated;

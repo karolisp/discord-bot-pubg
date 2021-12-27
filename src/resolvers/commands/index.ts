@@ -27,6 +27,9 @@ export const ALLOWED_ROLES = [];
 export const resolvers: Resolvers = {
   lfs: LfsResolver,
   '+': LfsResolver,
+  '+1': LfsResolver,
+  '+2': LfsResolver,
+  '+3': LfsResolver,
   '/link': LinkResolver,
   '.link': LinkResolver,
   '/unlink': UnlinkResolver,
