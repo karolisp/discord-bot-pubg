@@ -1,7 +1,7 @@
-import User from './../../models/user';
+import User, { UserDocument } from './../../models/user';
 import { GuildMember } from 'discord.js';
 import { CommandResolver } from '.';
-import { EmbedError } from '../../embeds/Error';
+import { EmbedError, EmbedErrorMessage } from '../../embeds/Error';
 import { EmbedSuccessMessage } from '../../embeds/Success';
 import { addStatsRoles, removeRoles } from '../../services/roles';
 
@@ -36,7 +36,16 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
     discordId: isAdminChannel ? discordId : message.author.id,
     pubgNickname,
     force: isAdminChannel,
+  }).catch(error=>{
+    feedbackMessage.edit(
+      EmbedErrorMessage(error.message,)
+    )
+    return {newUser:{stats:undefined}, oldUser: undefined}
   });
+
+  if (!stats){
+    return;
+  }
 
   await feedbackMessage.edit(
     EmbedSuccessMessage(

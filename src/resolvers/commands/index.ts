@@ -88,7 +88,7 @@ export const commandsResolver = async (client: Client, message: Message) => {
     const resolver = resolvers[command];
     await resolver(client, message, commandArgv);
   } catch (err) {
-    if (err instanceof EmbedError || isAdminChannel) {
+    if (err.name === 'EmbedError' || isAdminChannel) {
       await message.channel.send(EmbedErrorMessage(err.message));
     } else console.error(`Error running command resolver: "${command}"`, err.message);
 

@@ -94,7 +94,7 @@ export const removeRoles = async (member: GuildMember) => {
 };
 
 const addRoles = async (member: GuildMember, stats: StatsPartial) => {
-  if (typeof stats.kd !== 'number' || typeof stats.avgDamage !== 'number' || typeof stats.bestRank !== 'string') return;
+  if (typeof stats.kd !== 'number' || typeof stats.avgDamage !== 'number' || typeof stats.currentRank !== 'string') return;
 
   const kdRoleName = stats.kd ? computeRoleNameFromStats(KD, stats.kd, 'KD', 5) : null;
   const adrRoleName = stats.avgDamage ? computeRoleNameFromStats(ADR, stats.avgDamage, 'ADR', 500) : null;
@@ -111,10 +111,39 @@ const addRoles = async (member: GuildMember, stats: StatsPartial) => {
   await Promise.all(addRolesPromises);
 };
 
+const rolesToRemove = async(member: GuildMember) => {
+  return member.roles.cache.filter((role) => {
+    const statsRolesFound = ROLES.filter((r) => r.name === role.name);
+    const statsRolesNamefound = statsRolesFound.map((roleFound) => roleFound.name);
+    return statsRolesNamefound.includes(role.name);
+  });  
+}
+
+const rolesToAdd = async(member: GuildMember, stats: StatsPartial) => {
+  if (typeof stats.kd !== 'number' || typeof stats.avgDamage !== 'number' || typeof stats.currentRank !== 'string') return member.roles.cache.filter(r=>false);
+
+  const kdRoleName = stats.kd ? computeRoleNameFromStats(KD, stats.kd, 'KD', 5) : null;
+  const adrRoleName = stats.avgDamage ? computeRoleNameFromStats(ADR, stats.avgDamage, 'ADR', 500) : null;
+  const rankRoleName = stats.currentRank ? RANKS[stats.currentRank] : null;
+  const rolesNameToBeAssigned = [kdRoleName, adrRoleName, rankRoleName].filter((role) => role !== null);
+  const roles = await member.guild.roles.fetch();
+
+  // add new stats roles
+  return roles.cache.filter((role) => {
+    return rolesNameToBeAssigned.includes(role.name);
+  });
+}
+
 export const addStatsRoles = async (member: GuildMember, stats: StatsPartial) => {
   // remove previous roles
-  await removeRoles(member);
-  await addRoles(member, stats);
+  let toRemove = await rolesToRemove(member)
+  let toAdd = await rolesToAdd(member, stats);
+
+  await Promise.all( 
+      toRemove.filter(role=>!toAdd.map(r=>r.name).includes(role.name)).map((role) => member.roles.remove(role))
+    ).then(x => 
+      toAdd.filter(role=>!toRemove.map(r=>r.name).includes(role.name)).map((role) => member.roles.add(role))
+    )
 };
 
 export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
