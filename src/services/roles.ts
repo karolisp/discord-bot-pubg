@@ -147,7 +147,7 @@ export const addStatsRoles = async (member: GuildMember, stats: StatsPartial) =>
 };
 
 export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
-  if (member.roles.cache.some(role => RANKS[role.name] != null || ADR[role.name] != null) 
+  if (member.roles.cache.some(role => RANKS.keys.includes(role.name) || role.name.includes("ADR")) 
       && await User.userNeedsUpdate({ discordId: member.id, })
       ){
     try {

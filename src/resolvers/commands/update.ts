@@ -14,14 +14,9 @@ const UpdateResolver: CommandResolver = async (client, message) => {
   }).then(updated=>{
     if ((updated as any).updateFailMessage)
       feedbackMessage.edit(
-        EmbedErrorMessage(`Accounto [${updated.pubgNickname}](https://pubg.op.gg/user/${updated.pubgNickname}) atnaujinimas neivykdytas: ${(updated as any).updateFailMessage}`,)
+        EmbedErrorMessage(`Accounto [${updated.pubgNickname}](https://pubg.op.gg/user/${updated.pubgNickname}) atnaujinimas neivykdytas: ${(updated as any).updateFailMessage}, last updated: ${updated.updatedAt}`,)
       )
     else {
-          feedbackMessage.edit(
-          EmbedSuccessMessage(
-            `Accountas [${updated.pubgNickname}](https://pubg.op.gg/user/${updated.pubgNickname}) atnaujintas.`,
-          ),
-        );
         if (
           typeof updated?.stats?.currentRank === 'string' &&
           typeof updated?.stats?.avgDamage === 'number' &&
@@ -31,7 +26,7 @@ const UpdateResolver: CommandResolver = async (client, message) => {
         ) {
           addStatsRoles(message.member, updated.stats);
           feedbackMessage.edit(
-            `${message.member.displayName}, **GameMode**: Squad-FPP, **Rank** : ${updated.stats.currentRank} ${updated.stats.currentSubRank}, **ADR**: ${updated.stats.avgDamage}, **K/D**: ${updated.stats.kd}, **WR**: ${updated.stats.winRatio}%`,
+            `${message.member.displayName}, **GameMode**: Squad-FPP, **Rank** : ${updated.stats.currentRank} ${updated.stats.currentSubRank}, **ADR**: ${updated.stats.avgDamage}, **K/D**: ${updated.stats.kd}, **WR**: ${updated.stats.winRatio}%, stats date: ${updated.updatedAt}`,
           );
         } 
       }
