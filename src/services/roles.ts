@@ -151,7 +151,7 @@ export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
       && await User.userNeedsUpdate({ discordId: member.id, })
       ){
     try {
-      console.log(`Prilinkintas useris ${member.displayName} pakeite statusa, atnaujinamos roles...`)
+      console.log(`${new Date()}: Prilinkintas useris ${member.displayName} pakeite statusa, atnaujinamos roles...`)
       const updated = await User.updatePubgStats( { discordId: member.id, } )
       if (updated?.stats && !(updated as any).updateFailMessage) addStatsRoles(member, updated?.stats ) 
       if (updated?.updatedAt && new Date(updated.updatedAt).getTime() < (new Date().getTime() - (3600*1000*24*14))){ //two weeks grace period
