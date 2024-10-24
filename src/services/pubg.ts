@@ -29,6 +29,18 @@ const retrievalErrors = new TTLCache<string, EmbedError>({
   clock: Date
 });
 
+const playerIds = new TTLCache<string, string>({
+  ttl:   3600000,
+  max:   Infinity,
+  clock: Date
+});
+
+const seasonCache = new TTLCache<string, PubgSeason>({
+  ttl:   84000000,
+  max:   Infinity,
+  clock: Date
+});
+
 // config
 const pubg = axios.create({
   baseURL: 'https://api.playbattlegrounds.com/shards/steam',
@@ -128,15 +140,21 @@ export type StatsPartial = {
 };
 
 const getCurrentSeason = async (): Promise<PubgSeason> => {
-  const url = `/seasons`;
-  try {
-    const {
-      data: { data: seasons },
-    } = await pubg.get(url);
-    const currentSeason = seasons.find((season: PubgSeason) => season.attributes.isCurrentSeason);
-    return currentSeason;
-  } catch (err) {
-    throw new Error(err);
+  const season: PubgSeason | undefined = seasonCache.get("current")
+  if (season){
+    return season
+  } else {
+    const url = `/seasons`;
+    try {
+      const {
+        data: { data: seasons },
+      } = await pubg.get(url);
+      const currentSeason = seasons.find((season: PubgSeason) => season.attributes.isCurrentSeason);
+      seasonCache.set("current", currentSeason)
+      return currentSeason;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 };
 

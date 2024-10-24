@@ -1,6 +1,5 @@
 import User from './../../models/user';
 import { CommandResolver } from '.';
-import { EmbedSuccessMessage } from '../../embeds/Success';
 import { addStatsRoles } from '../../services/roles';
 import { EmbedError, EmbedErrorMessage } from '../../embeds/Error';
 
@@ -34,8 +33,10 @@ const UpdateResolver: CommandResolver = async (client, message) => {
   }).catch(err=>{
     if (err instanceof EmbedError){
       feedbackMessage.edit(EmbedErrorMessage(err.message))
+    } else if (err.updateFailMessage){
+      feedbackMessage.edit(EmbedErrorMessage(err.updateFailMessage))
     } else {
-      feedbackMessage.edit(EmbedErrorMessage("Atnaujinmas nepavyko, bandykite vėliau..."))
+      feedbackMessage.edit(EmbedErrorMessage("Atnaujinmas nepavyko: " + err.message))
     }  
   });   
 };

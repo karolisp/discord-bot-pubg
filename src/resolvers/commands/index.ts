@@ -2,7 +2,7 @@ import argv from 'yargs-parser';
 import { Client, Message } from 'discord.js';
 import { EmbedError, EmbedErrorMessage } from '../../embeds/Error';
 import { parseAuthorIdFromLfsEmbed } from '../../utils/embeds';
-import { logError } from '../../services/logs';
+import { logError, logErrorWithUser } from '../../services/logs';
 import LfsResolver from './lfs';
 import LinkResolver from './link';
 import UnlinkResolver from './unlink';
@@ -11,6 +11,7 @@ import HelpResolver from './help';
 import RoleResolver from './role';
 import { RANKS, removeRoles, updateRolesForMemberIfNeeded } from '../../services/roles';
 import User, { UserDocument } from '../../models/user';
+import { toInteger } from 'lodash';
 
 // import AntiSpam from './../services/spam';
 
@@ -26,6 +27,7 @@ export const ALLOWED_ROLES = [];
 
 export const resolvers: Resolvers = {
   lfs: LfsResolver,
+  'Lfs': LfsResolver,
   '+': LfsResolver,
   '+1': LfsResolver,
   '+2': LfsResolver,
@@ -36,8 +38,9 @@ export const resolvers: Resolvers = {
   update: UpdateResolver,
   '.update': UpdateResolver,
   '/update': UpdateResolver,
-  '/help': HelpResolver,
-  '/role': RoleResolver,
+  '.help': HelpResolver,
+  '!help': HelpResolver,
+  // '/role': RoleResolver,
   '-': async (client, message) => {
     if (message.channel.id !== process.env.LFS_CHANNEL_ID) return;
 
@@ -69,22 +72,15 @@ export const commandsResolver = async (client: Client, message: Message) => {
   const commandArgv = argv(message.content);
 
   const [command] = commandArgv._;
-
+  '15'
   if (process.env.ENABLE_ON_MESSAGE_AUTO_ROLE_UPDATE=="true" && message.member){
     updateRolesForMemberIfNeeded(message.member)
   }
+  if (!command) return null;
 
   if (!COMMANDS.includes(command.toLowerCase().trim())) return null;
 
   try {
-    // AntiSpam.log(message.author.id, message.content);
-    // const isSpamDetected = await AntiSpam.checkMessageInterval(message); // Check sent messages interval
-    // if (isSpamDetected) {
-    //   await message.delete();
-    //   await message.author.send(`<@${message.author.id}>, por favor evita o spam de comandos.`);
-    //   throw new Error(`Spam detected: ${message.content} by <@${message.author.id}>`);
-    // }
-
     const resolver = resolvers[command];
     await resolver(client, message, commandArgv);
   } catch (err) {
@@ -92,6 +88,6 @@ export const commandsResolver = async (client: Client, message: Message) => {
       await message.channel.send(EmbedErrorMessage(err.message));
     } else console.error(`Error running command resolver: "${command}"`, err.message);
 
-    await logError(client, message.channel.id, err);
+    await logErrorWithUser(client, message.channel.id, err, message.author.username, message.content);
   }
 };
