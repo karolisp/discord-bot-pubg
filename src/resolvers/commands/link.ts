@@ -78,7 +78,7 @@ const LinkResolver: CommandResolver = async (client, message, argumentsParsed) =
     }
     if (!member) throw new EmbedError('Toks vartotojas nerastas...');
     await addStatsRoles(member, stats);
-    const messageStats = `<@${linkedDiscordId}>, **GameMode**: Squad-FPP, **Rank**: ${stats.currentRank} ${stats.currentSubRank}, **ADR**: ${stats.avgDamage}, **K/D**: ${stats.kd}, **WR**: ${stats.winRatio}%.`;
+    const messageStats = `<@${linkedDiscordId}> prijunge ${pubgNickname} **GameMode**: Squad-FPP, **Rank**: ${stats.currentRank} ${stats.currentSubRank}, **ADR**: ${stats.avgDamage}, **K/D**: ${stats.kd}, **WR**: ${stats.winRatio}%.`;
     await feedbackMessage.edit(messageStats);
   }
 };

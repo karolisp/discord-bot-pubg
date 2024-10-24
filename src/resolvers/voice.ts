@@ -11,6 +11,7 @@ export const voiceResolver = async (client: Client, oldState: VoiceState, newSta
   const hasJoined = Boolean(newVoiceChannel);
   const hasSwitched = Boolean(hasJoined && prevVoiceChannel && prevVoiceChannel !== newVoiceChannel);
   const userId = newState.id;
+  const username = newState.member?.user.username
 
   const textChannel = await client.channels.fetch(process.env.LFS_CHANNEL_ID);
   if (!textChannel.isText()) return;
@@ -20,6 +21,7 @@ export const voiceResolver = async (client: Client, oldState: VoiceState, newSta
 
   if (hasJoined) {
     // add user to embed
+    console.log(`${new Date()}: User ${username}-${userId} prisijunge prie kanalo ${newVoiceChannel}`)
     const newMessageParsed = parseMessageRelatedToChannel(messagesArr, newVoiceChannel);
     if (newMessageParsed?.message && newMessageParsed?.embedParsed && newMessageParsed?.embedParsed.users) {
       const alreadyInEmbed = newMessageParsed.embedParsed.users.find((u) => u.discordId === userId);
