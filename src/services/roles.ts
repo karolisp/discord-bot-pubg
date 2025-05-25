@@ -147,9 +147,7 @@ export const addStatsRoles = async (member: GuildMember, stats: StatsPartial) =>
 };
 
 export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
-  if (member.roles.cache.some(role => ROLES.map(r=>r.name).includes(role.name) || role.name.includes("ADR")) 
-      && await User.userNeedsUpdate({ discordId: member.id, })
-      ){
+  if (await User.userNeedsUpdate({ discordId: member.id, })){
     try {
       console.log(`${new Date()}: Prilinkintas useris ${member.displayName} pakeite statusa, atnaujinamos roles...`)
       const updated = await User.updatePubgStats( { discordId: member.id, } )
