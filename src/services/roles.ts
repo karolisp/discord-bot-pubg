@@ -9,8 +9,10 @@ type Roles = RoleData[];
 export const RANKS: {
   [key: string]: PubgTier;
 } = {
+  Survivor: 'Survivor',
   Master: 'Master',
   Diamond: 'Diamond',
+  Crystal: 'Crystal',
   Platinum: 'Platinum',
   Gold: 'Gold',
   Silver: 'Silver',
@@ -55,8 +57,10 @@ const ROLES: Roles = [
   { name: ADR['200'], color: [125, 225, 127], hoist: true },
   { name: ADR['150'], color: [125, 225, 127], hoist: true },
   { name: ADR['100'], color: [125, 225, 127], hoist: true },
+  { name: RANKS.Survivor, color: [0, 255, 109] },
   { name: RANKS.Master, color: [0, 255, 109] },
   { name: RANKS.Diamond, color: [9, 249, 255] },
+  { name: RANKS.Crystal, color: [9, 249, 255] },
   { name: RANKS.Platinum, color: [33, 103, 148] },
   { name: RANKS.Gold, color: [214, 177, 99] },
   { name: RANKS.Silver, color: [121, 138, 150] },
