@@ -169,6 +169,7 @@ export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
       else {
         console.log(`Update failed for ${member.displayName}, msg: ${(updated as any).updateFailMessage}, updatedAt: ${updated.updatedAt}`)
       }
+
     } catch (err) {
       if (err instanceof EmbedError) {
         if (err.message.startsWith("Norint gauti roles reikia")) {
@@ -178,6 +179,7 @@ export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
             removeRoles(member) //no linked user - nuke roles
           }
           if (user?.updatedAt && new Date(user.updatedAt).getTime() < (new Date().getTime() - (3600*1000*24*14))){ //two weeks grace period
+
             console.log(`Removing roles for ${member.nickname} after two weeks since last update expired...`)
             removeRoles(member)
           }

@@ -78,13 +78,17 @@ export const commandsResolver = async (client: Client, message: Message) => {
   }
   if (!command) return null;
 
+  if (process.env.ENABLE_ON_MESSAGE_AUTO_ROLE_UPDATE=="true" && message.member){
+    updateRolesForMemberIfNeeded(message.member)
+  }
+
   if (!COMMANDS.includes(command.toLowerCase().trim())) return null;
 
   try {
     const resolver = resolvers[command];
     await resolver(client, message, commandArgv);
   } catch (err) {
-    if (err.name === 'EmbedError' || isAdminChannel) {
+    if (err instanceof EmbedError || isAdminChannel) {
       await message.channel.send(EmbedErrorMessage(err.message));
     } else console.error(`Error running command resolver: "${command}"`, err.message);
 
