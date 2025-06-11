@@ -29,6 +29,18 @@ const retrievalErrors = new TTLCache<string, EmbedError>({
   clock: Date
 });
 
+const playerIds = new TTLCache<string, string>({
+  ttl:   3600000,
+  max:   Infinity,
+  clock: Date
+});
+
+const seasonCache = new TTLCache<string, PubgSeason>({
+  ttl:   84000000,
+  max:   Infinity,
+  clock: Date
+});
+
 // config
 const pubg = axios.create({
   baseURL: 'https://api.playbattlegrounds.com/shards/steam',
@@ -128,15 +140,21 @@ export type StatsPartial = {
 };
 
 const getCurrentSeason = async (): Promise<PubgSeason> => {
-  const url = `/seasons`;
-  try {
-    const {
-      data: { data: seasons },
-    } = await pubg.get(url);
-    const currentSeason = seasons.find((season: PubgSeason) => season.attributes.isCurrentSeason);
-    return currentSeason;
-  } catch (err) {
-    throw new Error(err);
+  const season: PubgSeason | undefined = seasonCache.get("current")
+  if (season){
+    return season
+  } else {
+    const url = `/seasons`;
+    try {
+      const {
+        data: { data: seasons },
+      } = await pubg.get(url);
+      const currentSeason = seasons.find((season: PubgSeason) => season.attributes.isCurrentSeason);
+      seasonCache.set("current", currentSeason)
+      return currentSeason;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 };
 
@@ -223,9 +241,23 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
       retrievalErrors.set(player, new EmbedError(`Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`));
       throw retrievalErrors.get(player);
     }
+
+    if (err && err.response && err.response.status && err.response.status === 429)
+      throw new EmbedError(`✋ Perdaug dažnai kviečiamas PUBG API, palaukite vieną minutę ⏱ ir bandykite dar kartą!`);
+
+
+    return compiledStats;
+  } catch (err) {
+    if (err && err.response && err.response.status === 404) {
+      retrievalErrors.set(player, new EmbedError(`Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`));
+      throw retrievalErrors.get(player);
+    }
     if (err.name === 'EmbedError') {
       retrievalErrors.set(player, new EmbedError(err.message));
       throw retrievalErrors.get(player);
-    } else throw new Error(err);
+    }  
+    console.log(err)
+    throw new EmbedError(err);
+
   }
 };

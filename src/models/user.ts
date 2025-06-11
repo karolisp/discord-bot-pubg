@@ -136,10 +136,15 @@ UserSchema.statics = {
       );
     }
     // get player stats from pubg api and update
-    const stats = await getPlayerStats(user.pubgNickname);
-    user.stats = stats;
-    await user.save();
-    return user;
+    const maybeUpdated: UserDocument = await getPlayerStats(user.pubgNickname).then(retrieved=>{
+      user.stats = retrieved;
+      return user.save();
+    }).catch(err=>{
+      console.log(`Nepavyko gauti statsu: ${err}`);
+      (user as any).updateFailMessage = err.message
+      return user;
+    });
+    return maybeUpdated;
   },
 };
 

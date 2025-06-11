@@ -9,8 +9,10 @@ type Roles = RoleData[];
 export const RANKS: {
   [key: string]: PubgTier;
 } = {
+  Survivor: 'Survivor',
   Master: 'Master',
   Diamond: 'Diamond',
+  Crystal: 'Crystal',
   Platinum: 'Platinum',
   Gold: 'Gold',
   Silver: 'Silver',
@@ -55,8 +57,10 @@ const ROLES: Roles = [
   { name: ADR['200'], color: [125, 225, 127], hoist: true },
   { name: ADR['150'], color: [125, 225, 127], hoist: true },
   { name: ADR['100'], color: [125, 225, 127], hoist: true },
+  { name: RANKS.Survivor, color: [0, 255, 109] },
   { name: RANKS.Master, color: [0, 255, 109] },
   { name: RANKS.Diamond, color: [9, 249, 255] },
+  { name: RANKS.Crystal, color: [9, 249, 255] },
   { name: RANKS.Platinum, color: [33, 103, 148] },
   { name: RANKS.Gold, color: [214, 177, 99] },
   { name: RANKS.Silver, color: [121, 138, 150] },
@@ -94,7 +98,7 @@ export const removeRoles = async (member: GuildMember) => {
 };
 
 const addRoles = async (member: GuildMember, stats: StatsPartial) => {
-  if (typeof stats.kd !== 'number' || typeof stats.avgDamage !== 'number' || typeof stats.bestRank !== 'string') return;
+  if (typeof stats.kd !== 'number' || typeof stats.avgDamage !== 'number' || typeof stats.currentRank !== 'string') return;
 
   const kdRoleName = stats.kd ? computeRoleNameFromStats(KD, stats.kd, 'KD', 5) : null;
   const adrRoleName = stats.avgDamage ? computeRoleNameFromStats(ADR, stats.avgDamage, 'ADR', 500) : null;
@@ -111,20 +115,61 @@ const addRoles = async (member: GuildMember, stats: StatsPartial) => {
   await Promise.all(addRolesPromises);
 };
 
+const rolesToRemove = async(member: GuildMember) => {
+  return member.roles.cache.filter((role) => {
+    const statsRolesFound = ROLES.filter((r) => r.name === role.name);
+    const statsRolesNamefound = statsRolesFound.map((roleFound) => roleFound.name);
+    return statsRolesNamefound.includes(role.name);
+  });  
+}
+
+const rolesToAdd = async(member: GuildMember, stats: StatsPartial) => {
+  if (typeof stats.kd !== 'number' || typeof stats.avgDamage !== 'number' || typeof stats.currentRank !== 'string') return member.roles.cache.filter(r=>false);
+
+  const kdRoleName = stats.kd ? computeRoleNameFromStats(KD, stats.kd, 'KD', 5) : null;
+  const adrRoleName = stats.avgDamage ? computeRoleNameFromStats(ADR, stats.avgDamage, 'ADR', 500) : null;
+  const rankRoleName = stats.currentRank ? RANKS[stats.currentRank] : null;
+  const rolesNameToBeAssigned = [kdRoleName, adrRoleName, rankRoleName].filter((role) => role !== null);
+  const roles = await member.guild.roles.fetch();
+
+  // add new stats roles
+  return roles.cache.filter((role) => {
+    return rolesNameToBeAssigned.includes(role.name);
+  });
+}
+
 export const addStatsRoles = async (member: GuildMember, stats: StatsPartial) => {
   // remove previous roles
-  await removeRoles(member);
-  await addRoles(member, stats);
+  let toRemove = await rolesToRemove(member)
+  let toAdd = await rolesToAdd(member, stats);
+
+  await Promise.all( 
+      toRemove.filter(role=>!toAdd.map(r=>r.name).includes(role.name)).map((role) => member.roles.remove(role))
+    ).then(x => 
+      toAdd.filter(role=>!toRemove.map(r=>r.name).includes(role.name)).map((role) => member.roles.add(role))
+    )
 };
 
 export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
-  if (member.roles.cache.some(role => RANKS[role.name] != null) 
-      && await User.userNeedsUpdate({ discordId: member.id, })
-      ){
+  if (await User.userNeedsUpdate({ discordId: member.id, })){
     try {
-      console.log(`Prilinkintas useris ${member.displayName} pakeite statusa, atnaujinamos roles...`)
+      console.log(`${new Date()}: Prilinkintas useris ${member.displayName} pakeite statusa, atnaujinamos roles...`)
       const updated = await User.updatePubgStats( { discordId: member.id, } )
-      if (updated?.stats) addStatsRoles(member, updated?.stats ) 
+      if (updated?.stats && !(updated as any).updateFailMessage) addStatsRoles(member, updated?.stats )
+      else if ((updated as any).updateFailMessage &&(
+        (updated as any).updateFailMessage.startsWith("Nepavyko rasti pubg")  
+      )) { // update failed with error message
+        console.log(`Removing roles for ${member.displayName} because last update failed: ${(updated as any).updateFailMessage} .`)
+        removeRoles(member)
+      }
+      else if (updated?.updatedAt && new Date(updated.updatedAt).getTime() < (new Date().getTime() - (3600*1000*24*14))){ //two weeks grace period
+        console.log(`Removing roles for ${member.displayName} after two weeks since last update expired, last update on ${updated.updatedAt} .`)
+        removeRoles(member)
+      } 
+      else {
+        console.log(`Update failed for ${member.displayName}, msg: ${(updated as any).updateFailMessage}, updatedAt: ${updated.updatedAt}`)
+      }
+
     } catch (err) {
       if (err instanceof EmbedError) {
         if (err.message.startsWith("Norint gauti roles reikia")) {
@@ -133,14 +178,15 @@ export const updateRolesForMemberIfNeeded = async (member: GuildMember) => {
             console.log(`Removing roles for ${member.nickname} due to non existing linked account`)
             removeRoles(member) //no linked user - nuke roles
           }
-          if (user?.updatedAt && new Date(user.updatedAt).getTime() < new Date().getTime() - (3600*1000*24*14)){ //two weeks grace period
+          if (user?.updatedAt && new Date(user.updatedAt).getTime() < (new Date().getTime() - (3600*1000*24*14))){ //two weeks grace period
+
             console.log(`Removing roles for ${member.nickname} after two weeks since last update expired...`)
             removeRoles(member)
           }
         } else if (err.message.startsWith("Nepavyko rasti pubg")) { // pasikeite vardas, tegu prisilinkina is naujo
           console.log(`Removing roles for ${member.nickname} due to unknown linked char, did name change happen? `)
           removeRoles(member)
-        }
+        } 
       } else {
         console.log(err)
       }

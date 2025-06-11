@@ -39,7 +39,7 @@ const LfsResolver: CommandResolver = async (client, message, argumentsParsed) =>
 
     // should only create lfs if less than 4 players in channel
     if (authorVoiceChannel && authorVoiceChannel?.members?.size >= 4) {
-      await message.member?.send('Voice Roome jau yra 4 žaidėjai, LFS žinutė nebuvo sukurtas.');
+      await message.member?.send('Voice Roome jau yra 4 žaidėjai, LFS žinutė nebuvo sukurta.');
       return;
     }
   }

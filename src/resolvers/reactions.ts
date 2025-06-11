@@ -28,7 +28,7 @@ export const resolvers: Resolvers = {
 
     // most be a lfs embed and author different from "reactor"
     if (authorEmbed && authorEmbed?.id !== authorReaction.id && isLfsTeamEmbed(embed)) {
-      const isSpam = AntiSpamLfsReaction.parse({
+      const isSpam = AntiSpamLfsReaction.isSpam({
         reaction: reaction.emoji.name,
         lfsAuthorId: authorEmbed.id,
         reactionAuthorId: user.id,
@@ -44,7 +44,7 @@ export const resolvers: Resolvers = {
       }
 
       await authorReaction.send(EmbedPmNotice(authorEmbed.id));
-      const embedPmRequest = await authorEmbed.send(EmbedPmRequest(authorReaction.id));
+      const embedPmRequest = await authorEmbed.send(EmbedPmRequest(authorReaction.id, authorReaction.username));
       await embedPmRequest.react('✅');
       await embedPmRequest.react('❌');
     }
@@ -59,16 +59,16 @@ export const resolvers: Resolvers = {
     if (embedType === 'lfs') {
       const lfsReactionAuthorId = embed.description ? parseUserIdFromMention(embed.description) : null;
       if (lfsReactionAuthorId && process.env.DISCORD_SERVER_ID) {
-        await reaction.message.edit(EmbedPmRequestAccept(lfsReactionAuthorId));
-
         const lfsReactionAuthor = client.users.cache.find((user) => user.id === lfsReactionAuthorId);
+        await reaction.message.edit(EmbedPmRequestAccept(lfsReactionAuthorId, lfsReactionAuthor?.username?lfsReactionAuthor?.username:""));
+
         const guild = await client.guilds.fetch(process.env.DISCORD_SERVER_ID);
         const member = await guild.members.fetch(user.id);
         const lfsAuthorChannel = member.voice.channel;
         const lfsAuthorChannelInvite = await lfsAuthorChannel?.createInvite();
         const lfsAuthorChannelName = lfsAuthorChannel?.toString();
 
-        lfsReactionAuthor?.send(EmbedPmNoticeAccept(user.id, lfsAuthorChannelName, lfsAuthorChannelInvite?.url));
+        lfsReactionAuthor?.send(EmbedPmNoticeAccept(user.username?user.username:user.id, lfsAuthorChannelName, lfsAuthorChannelInvite?.url));
       }
     }
   },
@@ -82,9 +82,9 @@ export const resolvers: Resolvers = {
     if (embedType === 'lfs') {
       const lfsReactionAuthorId = embed.description ? parseUserIdFromMention(embed.description) : null;
       if (lfsReactionAuthorId && process.env.DISCORD_SERVER_ID) {
-        await reaction.message.edit(EmbedPmRequestDecline(lfsReactionAuthorId));
         const lfsReactionAuthor = client.users.cache.find((user) => user.id === lfsReactionAuthorId);
-        lfsReactionAuthor?.send(EmbedPmNoticeDecline(user.id));
+        await reaction.message.edit(EmbedPmRequestDecline(lfsReactionAuthorId, user.username));
+        lfsReactionAuthor?.send(EmbedPmNoticeDecline(user.username?user.username:user.id));
       }
     }
   },
@@ -109,7 +109,7 @@ export const resolvers: Resolvers = {
         return;
       }
 
-      const isSpam = AntiSpamLfsReaction.parse({
+      const isSpam = AntiSpamLfsReaction.isSpam({
         reaction: reaction.emoji.name,
         lfsAuthorId,
         reactionAuthorId: user.id,
@@ -126,7 +126,7 @@ export const resolvers: Resolvers = {
 
       const channelName = reactionAuthorChannel?.name;
       const channelInvite = await reactionAuthorChannel?.createInvite();
-      await lfsAuthor?.send(EmbedPmNoticeWelcome(user.id, channelName, channelInvite?.url));
+      await lfsAuthor?.send(EmbedPmNoticeWelcome(user.username ? user.username : user.id, channelName, channelInvite?.url));
     }
   },
 };
@@ -141,7 +141,7 @@ export const reactionsResolver = async (client: Client, reaction: MessageReactio
     const resolver = resolvers[emoji];
     await resolver(client, reaction, user);
   } catch (err) {
-    console.error(`Error running reaction resolver: "${reaction.emoji.name} - "`, err.message);
+    console.error(`Error running reaction resolver: "${reaction.emoji.name} - "`, (err instanceof Error)? err.message : `${err}`);
     await logError(client, reaction.message.channel.id, err);
   }
 };
