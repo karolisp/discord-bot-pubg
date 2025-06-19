@@ -114,7 +114,7 @@ type PubgPlayerResponse = {
     type: string;
     attributes: {
       rankedGameModeStats?: {
-        'squad-fpp'?: PubgRankedStats;
+        'All'?: PubgRankedStats;
       };
     };
   };
@@ -202,7 +202,7 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
       data: { data },
     }: AxiosResponse<PubgPlayerResponse> = await pubg.get(url);
 
-    const pubgStats = data.attributes.rankedGameModeStats?.['squad-fpp'];
+    const pubgStats = data.attributes.rankedGameModeStats?.['All'];
     const roundsPlayed = get(pubgStats, 'roundsPlayed', NaN);
 
     
