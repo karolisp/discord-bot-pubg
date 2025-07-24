@@ -204,7 +204,10 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
       data: { data },
     }: AxiosResponse<PubgPlayerResponse> = await pubg.get(url);
 
-    const pubgStats = data.attributes.rankedGameModeStats?.['All'];
+    if (data.attributes.rankedGameModeStats?.['squad-fpp'])
+      var pubgStats = data.attributes.rankedGameModeStats?.['squad-fpp']
+    else
+      var pubgStats = data.attributes.rankedGameModeStats?.['duo-fpp']
     const roundsPlayed = get(pubgStats, 'roundsPlayed', NaN);
 
     if (roundsPlayed < MINIMUM_GAMES || pubgStats === undefined)
@@ -251,7 +254,6 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
 
     if (err && err.response && err.response.status && err.response.status === 429)
       throw new EmbedError(`✋ Perdaug dažnai kviečiamas PUBG API, palaukite vieną minutę ⏱ ir bandykite dar kartą!`);
-
-    return compiledStats;
+    throw err
   }
 };
