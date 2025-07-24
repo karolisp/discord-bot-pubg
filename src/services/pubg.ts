@@ -18,27 +18,27 @@ function toPercentage(number: number) {
 }
 
 const retrievedStatsCache = new TTLCache<string, Stats>({
-  ttl:   3600000,
-  max:   Infinity,
-  clock: Date
+  ttl: 3600000,
+  max: Infinity,
+  clock: Date,
 });
 
 const retrievalErrors = new TTLCache<string, EmbedError>({
-  ttl:   3600000,
-  max:   Infinity,
-  clock: Date
+  ttl: 3600000,
+  max: Infinity,
+  clock: Date,
 });
 
 const playerIds = new TTLCache<string, string>({
-  ttl:   3600000,
-  max:   Infinity,
-  clock: Date
+  ttl: 3600000,
+  max: Infinity,
+  clock: Date,
 });
 
 const seasonCache = new TTLCache<string, PubgSeason>({
-  ttl:   84000000,
-  max:   Infinity,
-  clock: Date
+  ttl: 84000000,
+  max: Infinity,
+  clock: Date,
 });
 
 // config
@@ -61,8 +61,10 @@ type PubgSeason = {
 };
 
 export enum Tier {
+  Survivor,
   Master,
   Diamond,
+  Crystal,
   Platinum,
   Gold,
   Silver,
@@ -114,7 +116,7 @@ type PubgPlayerResponse = {
     type: string;
     attributes: {
       rankedGameModeStats?: {
-        'All'?: PubgRankedStats;
+        All?: PubgRankedStats;
       };
     };
   };
@@ -127,7 +129,7 @@ export type Stats = {
   winRatio: number;
   roundsPlayed: number;
   currentRank: PubgTier;
-  currentSubRank: String;
+  currentSubRank: string;
 };
 
 export type StatsPartial = {
@@ -136,13 +138,13 @@ export type StatsPartial = {
   bestRank?: PubgTier;
   winRatio?: number;
   currentRank?: PubgTier;
-  currentSubRank?: String;
+  currentSubRank?: string;
 };
 
 const getCurrentSeason = async (): Promise<PubgSeason> => {
-  const season: PubgSeason | undefined = seasonCache.get("current")
-  if (season){
-    return season
+  const season: PubgSeason | undefined = seasonCache.get('current');
+  if (season) {
+    return season;
   } else {
     const url = `/seasons`;
     try {
@@ -150,7 +152,7 @@ const getCurrentSeason = async (): Promise<PubgSeason> => {
         data: { data: seasons },
       } = await pubg.get(url);
       const currentSeason = seasons.find((season: PubgSeason) => season.attributes.isCurrentSeason);
-      seasonCache.set("current", currentSeason)
+      seasonCache.set('current', currentSeason);
       return currentSeason;
     } catch (err) {
       throw new Error(err);
@@ -191,8 +193,8 @@ const getPlayerId = async (player: string): Promise<string> => {
 export const getPlayerStats = async (player: string): Promise<Stats> => {
   if (typeof player !== 'string' || !player) throw Error('Missing player name');
   const cached = retrievedStatsCache.get(player);
-  if (cached) return cached
-  else if (retrievalErrors.get(player)) throw retrievalErrors.get(player)
+  if (cached) return cached;
+  else if (retrievalErrors.get(player)) throw retrievalErrors.get(player);
   try {
     const { id: seasonId } = await getCurrentSeason();
     const playerId = await getPlayerId(player);
@@ -205,10 +207,10 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     const pubgStats = data.attributes.rankedGameModeStats?.['All'];
     const roundsPlayed = get(pubgStats, 'roundsPlayed', NaN);
 
-    
     if (roundsPlayed < MINIMUM_GAMES || pubgStats === undefined)
-      throw new EmbedError(`Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų. ${player} turi ${roundsPlayed} ranked squad-fpp žaidimų dabartiniame sezone`);
-
+      throw new EmbedError(
+        `Norint gauti roles reikia sužaisti dabartiniame sezone minimum ${MINIMUM_GAMES} žaidimų. ${player} turi ${roundsPlayed} ranked squad-fpp žaidimų dabartiniame sezone`,
+      );
 
     const wins = get(pubgStats, 'wins', NaN);
     const damageDealt = get(pubgStats, 'damageDealt', NaN);
@@ -238,26 +240,18 @@ export const getPlayerStats = async (player: string): Promise<Stats> => {
     return compiledStats;
   } catch (err) {
     if (err && err.response && err.response.status === 404) {
-      retrievalErrors.set(player, new EmbedError(`Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`));
+      retrievalErrors.set(
+        player,
+        new EmbedError(
+          `Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`,
+        ),
+      );
       throw retrievalErrors.get(player);
     }
 
     if (err && err.response && err.response.status && err.response.status === 429)
       throw new EmbedError(`✋ Perdaug dažnai kviečiamas PUBG API, palaukite vieną minutę ⏱ ir bandykite dar kartą!`);
 
-
     return compiledStats;
-  } catch (err) {
-    if (err && err.response && err.response.status === 404) {
-      retrievalErrors.set(player, new EmbedError(`Nepavyko atnaujinti rolių nes ${player} nerastas (404) pubg API, gal neseniai buvo pakeistas in game name?`));
-      throw retrievalErrors.get(player);
-    }
-    if (err.name === 'EmbedError') {
-      retrievalErrors.set(player, new EmbedError(err.message));
-      throw retrievalErrors.get(player);
-    }  
-    console.log(err)
-    throw new EmbedError(err);
-
   }
 };
